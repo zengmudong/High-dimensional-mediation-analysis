@@ -1,0 +1,318 @@
+---
+title: "Real Data Analysis"
+author: "Xu Guo, Runze Li, Jingyuan Liu, Mudong Zeng"
+output:
+  github_document:
+    pandoc_args: "--webtex"
+---
+
+This Rmd is devoted to an empirical analysis of the same data set as that in Houtepen et al. (2016) and van Kesteren & Oberski (2019), for studying how DNA methylation plays a role in the regulation of human stress reactivity. This Rmd aims to reproduce the results in Section 3 of the paper "High-dimensional mediation analysis for selecting DNA methylation Loci mediating childhood trauma and cortisol stress reactivity".
+
+```{r setup, include=FALSE}
+if(!require(knitr)){
+  install.packages("knitr")
+}
+# Load source codes
+source("utils.R")
+```
+
+# 1. Preprocess raw data
+The data can be downloaded from the following website:
+https://www.ebi.ac.uk/arrayexpress/experiments/E-GEOD-77445, and the data set consists of 385,882 DNA methylation loci and various variables for 85 people.
+Before processing the data, users should download the data and stored them in a folder. Next, specify the path of the folder to the `PATH' variable below.
+```{r}
+PATH = "C:/Users/49849/Documents/R/research/ema_simulations/data_application/data/"
+```
+
+## 1.1 Load data
+The original data available to the authors are .txt files. We loaded these files and merged them into a clean data set (containing two vectors, exposure variable X as well as response variable y, and two dataframes potential mediators M as well as confounding variables S). To make it convenient for further analysis, we stored the data set in a .RData file. 
+```{r RawData, warning=FALSE}
+RawDataPath = LoadRawData(InputPath = PATH)
+```
+
+## 1.2 Marginal screening for potential mediators
+We  carry out a screening step to
+retain the top 1000 potential mediators by ranking the absolute value of the
+product of two correlations - the correlation between $\mathbf{x}$ and each element of $\mathbf{m}$, and between $y$ and each element of $\mathbf{m}$. This indeed is a marginal screening procedure based on Pearson correlation proposed by Fan & Lv (2008).
+
+```{r Preprocess, message=TRUE, warning=FALSE, paged.print=FALSE}
+RawDataPath = "results/raw_data.Rdata"
+topPotential = 1000
+cleanedData = MarginalScreening(RawDataPath, topPotential = topPotential)
+load(cleanedData)
+```
+
+# 2. Our proposed new method
+Procedure of identifying active mediators in the mediation
+models (2.1) and (2.2), and estimating the direct effect $\mathbf{\alpha_1}$ and indirect effect $\boldsymbol{\beta}$ that can get around high dimensional matrix estimation.
+
+## 2.1 Identifying active mediators
+we apply the partial penalized least squared method to fit model (2.1) by only penalizing $\boldsymbol{\alpha}_0$, which corresponding to Eq. (2.5). 
+
+### 2.1.1 Algorithm for solving Eq. (2.5)
+We apply the local linear approximation algorithm
+(LLA) in Zou and Li (2008) with the SCAD penalty (Fan & Li, 2001)
+,
+$$
+p'_{\lambda}(t)=\lambda\{I(t\leq \lambda)
++\frac{(a\lambda-t)_{+}}{(a-1)\lambda}I(t>\lambda)\},
+$$
+and set $a=3.7$. The tuning parameter $\lambda$ for our method is chosen based on the high-dimensional
+BIC (HBIC) method in Wang et al. (2013).
+For a fixed regularization parameter $\lambda$, define
+$$(\hat{\boldsymbol{\alpha}}_0^{\lambda}, \hat{\boldsymbol{\alpha}}_1^{\lambda})=\min_{\boldsymbol{\alpha}_0,\boldsymbol{\alpha}_1}\frac{1}{2n}\|\mathbf{Y}-\mathbf{M}\boldsymbol{\alpha}_{0}-\mathbf{X}\boldsymbol{\alpha}_1\|^2_2+\sum_{j=1}^p p_{\lambda}(|\alpha_{0,j}|).$$
+The minimization of the  partially penalized least squares method can
+be carried out as follows.
+
+1. Get initial values for $\boldsymbol{\alpha}^{(0)}_0,\boldsymbol{\alpha}^{(0)}_1$ by minimizing a
+partial $L_1$-penalized least squares:
+$$(\hat{\boldsymbol{\alpha}}_0^{(0)}, \hat{\boldsymbol{\alpha}}_1^{(0)})=\min_{\boldsymbol{\alpha}_0,\boldsymbol{\alpha}_1}
+\frac{1}{2n}\|\mathbf{Y}-\mathbf{M}\boldsymbol{\alpha}_{0}-\mathbf{X}\boldsymbol{\alpha}_1\|^2_2+\lambda\sum_{j=1}^p |\alpha_{0,j}|.$$
+
+2. Solve
+$$(\hat{\boldsymbol{\alpha}}_0^{(k+1)}, \hat{\boldsymbol{\alpha}}_1^{(k+1)})=\min_{\boldsymbol{\alpha}_0,\boldsymbol{\alpha}_1}
+\frac{1}{2n}\|\mathbf{Y}-\mathbf{M}\boldsymbol{\alpha}_{0}-\mathbf{X}\boldsymbol{\alpha}_1\|^2_2+\sum_{j=1}^p p'_{\lambda}(|\alpha^{(k)}_{0,j}|)|\alpha_{0,j}|, \text{ for } k=1,2,\cdots,$$
+until $\{(\hat{\boldsymbol{\alpha}}_0^{(k)}, \hat{\boldsymbol{\alpha}}_1^{(k)})\}$ converges.
+
+Below is the implementation of solving Eq. (2.5).
+The candidate set of $\lambda$ is 50 equally spaced grid from 20 to 70.
+```{r LLA, echo=TRUE, warning=FALSE, paged.print=TRUE}
+deSCAD <- function(z,lamb,a=3.7){
+  # First order derivative of SCAD penalty
+  # tuning parameter "a" (or "gamma") use the default value 3.7
+  return(1*(z<=lamb)+pmax((a*lamb-z),0)/((a-1)*lamb)*(lamb<z))
+}
+
+## ONE-STEP SPARSE ESTIMATES IN NONCONCAVE PENALIZED LIKELIHOOD MODELS
+LLA_h1<- function(X,Y,M,lamb,n,p,q, n_imp = 0,S = NULL){
+  if(length(S) == 0){
+    s = 0
+    V = X
+  }else{
+    s = ncol(S)
+    V = cbind(X,S)
+  }
+  # Step 1 using Lasso
+  w1 = matrix(0,nrow = (p + q + s),ncol=1)
+  w1[1:(p-n_imp)] = 1
+  alpha_int = coef(glmnet(cbind(M,V),Y,family = 'gaussian', alpha=1,
+                          lambda = lamb, penalty.factor=w1,intercept = FALSE))[-1]
+  # Step 2 using linear approximation of SCAD
+  w2 = matrix(0,nrow = (p+q + s),ncol=1)
+  for(j in 1:(p- n_imp)){
+    w2[j] = deSCAD(alpha_int[j],lamb)
+  }
+  alpha = coef(glmnet(cbind(M,V),Y,family = 'gaussian', alpha=1,
+                      lambda = lamb, penalty.factor=w2, intercept = FALSE))
+  return(alpha[-1])
+}
+HBIC_calc <- function(lamb, xx,yy,mm,S = NULL, n_imp =8){
+  # S is cofounder
+  n = nrow(xx)
+  p = ncol(mm)
+  q = ncol(xx)
+  if(is.null(S)){
+    s = 0
+    result <- LLA_h1(xx,yy,mm,lamb,n,p,q, n_imp = n_imp)
+    alpha0 = result[1:p]
+    alpha1 = result[(p+1):(p+q)]
+    alpha2 = NULL
+    tmp = yy - mm%*%alpha0 - xx%*% alpha1
+  }else{
+    s = ncol(S)
+    result <- LLA_h1(xx,yy,mm,lamb,n,p,q,n_imp = n_imp, S = S)
+    alpha0 = result[1:p]
+    alpha1 = result[(p+1):(p+q)]
+    alpha2 = result[(p+q+1):(p+q+s)]
+    
+    tmp = yy - mm%*%alpha0 - xx%*% alpha1 - S %*% alpha2
+  }
+  
+  df = length(which(alpha0!= 0))+q + s
+  sigma_hat = t(tmp)%*%tmp/n
+  BIC = log(sigma_hat) + df*log(log(n))*log(p+q + s)/n
+  #obj = objective(xx,yy,M,alpha0,alpha1,lamb)
+  return(list(BIC=BIC,alpha0=alpha0,alpha1 = alpha1, 
+              alpha2 = alpha2, sigma1_hat = sigma_hat))
+}
+
+
+HBIC_PPLS <- function(X, y, M, S = NULL, lam_list =NULL, n_imp =8,topPotential= 1000){
+  #' This function implements solving the partially penalized least squares with the SCAD penalty. The tuning parameter lambda for the penalty function is chosen based on the high-dimensional BIC (HBIC) method.
+  #' @param X The n by q exposure matrix. q can be 1, and q < n is required
+  #' @param y The n-dimensional outcome vector.
+  #' @param M The n by p mediator matrix. p can be larger than n.
+  #' @param S The n by s confounding variables matrix. s can be 1, and s < n is required. 
+  #' @param lam_list a list of tuning parameter for HBIC
+  
+  #' @return
+  #'
+  #'    A dataframe of selected important mediators (denoted as M_{\hat{A}} in the paper)
+  hbic= c()
+  
+  result =lapply(lam_list, HBIC_calc, xx=X,yy=y, mm=M, S = S, n_imp = n_imp)
+  
+  for( ii in 1: length(lam_list)){
+    hbic[ii] = result[[ii]]$BIC
+  }
+  # Find minimum HBIC score's corresponding lambda
+  id = which(hbic==min(hbic))
+  id = tail(id,1)
+  lamb = lam_list[id]
+  print(paste("choose lambda:", lamb))
+  result = result[[id]]
+  alpha0_hat = result$alpha0
+  alpha1_hat = result$alpha1
+  
+  A = which(alpha0_hat!=0)
+  # Selected mediators 
+  M_A = M[,c(A[A>topPotential],A[A<=topPotential])]
+}
+
+# specify the candidate set of lambda
+lamb_min = 20
+lamb_max = 70
+ngrid = 50
+lam_list = seq(lamb_min,lamb_max,length.out = ngrid)
+
+M_A = HBIC_PPLS(X, y, M, S = S, lam_list =lam_list, n_imp =8, 
+                topPotential = topPotential)
+```
+
+### 2.1.2 Estimat $\mathbf{\alpha}_1$ and $\mathbf{\alpha}_0$ 
+Estimated Coefficients, SE, t-values and p-values (Table 2)
+```{r Table2, warning=FALSE}
+# Refit to produce Table 2:
+colnames(S) = paste0("Z",0:(ncol(S)-1))
+df = data.frame(cbind(M_A, X, S))
+round(summary(lm(y~ 0+., data = df))$coefficients,digits = 3)
+```
+
+
+### 2.1.3 Estimate $\Gamma_1$ and $\Gamma_2$ 
+Estimated Coefficients of $\Gamma_1$ and $\Gamma_2$ and their p-values (Table 3)
+```{r}
+cpg = colnames(M_A)
+colnames(M_A) = paste0("m",1:ncol(M_A))
+Gamma = MediatorExposure(cbind(X, S), M_A)
+round(Gamma$Gamma_hat,digits = 3)
+round(Gamma$Gamma_pvalue,digits = 3)
+```
+
+
+## 2.2 Test of direct effect and indirect effect 
+The estimated coefficients, standard errors, test statistics values and p-values (Table 4)
+```{r paged.print=FALSE}
+direct_indirect_eff <- mediationInference(X, y, M_A, S)
+knitr::kable(direct_indirect_eff$summary_result)
+```
+
+
+
+## 2.3 Wrapper function
+The above are the break down of our proposed method so that users can follow the analysis step by step. We also provide a wrapper function "hdMediation" that consolidate the estimation and inference steps (section 2.1 ~ 2.2). Calling this function will return selected important mediators' name, estimated direct as well as indirect effect, test statistics and p-value. Note that users should put the unpenalized mediators in the last part of `M' matrix and use `n_imp' to specify the number of them.
+```{r}
+fit<-hdMediation(X,y,M, lam_list =lam_list, S=S, n_imp =8)
+cat("Inportant mediators:", fit$Mediators_imp)
+kable(fit$summary_result)
+```
+
+## 2.4 Annotation 
+Annotation of the included mediators (Table 5)
+```{r annotation, message=FALSE, warning=FALSE}
+hm450 <- get450k()
+probes <- hm450[cpg]
+annot <- getNearestTSS(probes)
+annot[,'nearestGeneSymbol', drop=FALSE]
+```
+
+# 3. Some comparisons
+Compare our results with those in Houtepen et al. (2016) and van Kesteren & Oberski (2019) from statistical point of view.
+
+Estimated \alpha_j’s and their SE and p-values (Table 6)
+```{r Table6, warning=FALSE}
+## m_{(1)}  Houtepen et al (2016)
+Houtepen<-analysis_helper(X,y,M_A[,1:3],
+                          S, mod_name = '$\\mathbf{m}_{(1)}$')
+
+##m_{(2)} van Kesteren & Oberski (2019)
+Kesteren<-analysis_helper(X,y,M_A[,4:8], S, mod_name = '$\\mathbf{m}_{(2)}$')
+
+## m_{(3)} Mediators merge from Houtepen et al (2016) or van Kesteren & Oberski (2019)
+combine8<-analysis_helper(X,y,M_A[,1:8], S,  mod_name = '$\\mathbf{m}_{(3)}$')
+
+Table6 <- merge(Houtepen$mod_summary, Kesteren$mod_summary,by = 'row.names', all = TRUE, check.names=F)
+Table6 <- merge(Table6, combine8$mod_summary,by.x = 'Row.names', by.y ='row.names' , all = TRUE, check.names=F)
+Table6[is.na(Table6)] <- ""
+knitr::kable(Table6)
+```
+The estimated coefficients, standard errors, test statistics values and p-values fro model $\\mathbf{m}_{(1)}$, $\\mathbf{m}_{(2)}$, $\\mathbf{m}_{(3)}$ (Table 7)
+
+```{r Table7, warning=FALSE}
+Table7 <- rbind(Houtepen$summary_result, Kesteren$summary_result, combine8$summary_result)
+row.names(Table7) <- c('$\\mathbf{m}_{(1)}$','','$\\mathbf{m}_{(2)}$',' ','$\\mathbf{m}_{(3)}$','  ')
+knitr::kable(Table7)
+```
+
+# 4. Relationship among the mediators
+## 4.1 Sample pearson correlation
+Sample pearson correlation $\hat{\rho}(m_j, m_k)$ and its $p$-values for $H_0: \rho(m_j, m_k)=0$ (Table S.1)
+
+```{r samplePearson, warning=FALSE}
+source("utils.R")
+knitr::kable(Fisher.helper(M_A))
+```
+
+
+## 4.2 Sample partial correlation
+Sample partial correlation $\hat{\rho}(m_j, m_k|X,\mathbf{z})$ and its $p$-values for $H_0: \rho(m_j, m_k|X,\mathbf{z})=0$ (Table S.2)
+
+```{r partialPearson, warning=FALSE}
+df = data.frame(cbind(M_A, X, S))
+par.corr.x = partial.helper(df, 1:11, 12:21 )
+knitr::kable(par.corr.x)
+```
+
+## 4.3 Multi-collinearity between mediators
+The $R^2$, $F$ statistics values and $p$-values of regression models between mediators to investigate multi-collinearity between mediators. (Table S.3)
+```{r multicollinearity, warning=FALSE}
+fit1 <- summary(lm( m1~ m4+m5+m6+m7+m8, data = df))
+
+fit2 <- summary(lm( m1~ m9+m10+m11, data = df))
+
+fit3 <- summary(lm( m4~ m5+m6+m7+m8, data = df))
+
+fit4 <- summary(lm( m5~ m4+m6+m7+m8, data = df))
+
+fit5 <- summary(lm( m6~ m4+m5+m7+m8, data = df))
+
+S3 <- generateTableS3(list(fit1 = fit1, fit2 = fit2,
+                           fit3 = fit3,fit4 = fit4,fit5 = fit5))
+tableS3<- data.frame(Dependent_variable = c('m1', 'm1', 'm4','m5','m6'),
+                      Independent_variable = c('m4, m5, m6, m7, m8', 'm9, m10, m11', 'm5, m6, m7, m8', 'm4, m6, m7, m8', 'm4, m5, m7, m8'),
+                      R2 = S3$R2,
+                      F_stat=S3$F_stat,
+                      p_value = S3$p_val)
+knitr::kable(tableS3, digits  = 4)
+```
+
+# References
+
+Fan, J. & Li, R. (2001). Variable selection via nonconcave penalized likelihood and its oracle properties. _Journal of American Statistical Association_, **96**, 1348-1360.
+
+Fan, J. & Lv, J. (2008). Sure independence screening for ultrahigh dimensional feature space. _Journal of the Royal Statistical Society: Series B (Statistical Methodology)_, **70**(5), 849–911.
+
+Houtepen, L.C., Vinkers, C.H., Carrillo-Roa, T., Hiemstra, M., Van Lier, P.A.,
+Meeus, W., Branje, S., Heim, C.M., Nemeroff, C.B., Mill, J. & Schalkwyk,
+L.C. (2016). Genome-wide DNA methylation levels and altered cortisol stress reactivity following childhood trauma in humans. _Nature Communications_, **7**(1), 10967
+
+van Kesteren, E. J. & Oberski, D. L. (2019). Exploratory Mediation Analysis with
+Many Potential Mediators _Structural Equation Modeling: A Multidisciplinary Journal_, **26**(5), 710-723.
+
+Wang, L., Kim, Y. & Li, R.(2013). Calibrating non-convex penalized regression in ultra-high dimension. _Annals of Statistics_ **41**, 2505-2536
+
+Zhou, R. X., Wang, L. W., & Zhao, S. H.(2020). Estimation and inference for the indirect effect in high-dimensional linear mediation models. _Biometrika_ **107**(3), 573--589.
+
+ZOU, H., & LI, R. (2008). One-step sparse estimates in nonconcave penalized likelihood models. _Annals of Statistics_ **36**(4), 1509-1533.
+35
+
