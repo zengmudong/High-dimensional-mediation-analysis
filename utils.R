@@ -24,7 +24,7 @@ if(!require(FDb.InfiniumMethylation.hg18)){
 
 library(scalreg)
 library(glmnet)
-
+options("digits" = 4)
 LoadRawData<- function(InputPath, OutputPath = "./results/raw_data.Rdata"){
   tab <- read.table(paste(InputPath,"X.tsv",sep =""),header = TRUE,sep="\t")
   # Extract x and y variables
@@ -120,7 +120,23 @@ MediatorExposure <- function(X,M){
               Gamma_tvalue=t(Gamma_tvalue_sep)))
 }
 
-HDMediationInference<-function(X, Y, M, S){
+mediationInference<-function(X, Y, M, S){
+  #' This function implements statistical inference of mediation model
+  #' @param X The n by q exposure matrix. q can be 1, and q < n is required
+  #' @param y The n-dimensional outcome vector.
+  #' @param M The n by p selected important mediator matrix. p<n
+  #' @param S The n by s confounding variables matrix. s can be 1, and s < n is required.
+  #' 
+
+  #' @return
+  #'    A list of class `mediationInference`:
+  #'    - beta_hat: estimated indirect effect
+  #'    - alpha1_hat: estimated direct effect
+  #'    - Sn: test statistc value of indirect effect
+  #'    - Tn: test statistc value of direct effect
+  #'    - summary_result: (dataframe) summary of The estimated coefficients, standard errors, test statistics values and p-values
+  
+  
   p = ncol(M)
   q = ncol(X)
   n = nrow(X)
@@ -187,18 +203,22 @@ HDMediationInference<-function(X, Y, M, S){
   # LRT
   Tn = (n-df) * (RSS02-RSS12)/RSS12
   
+  p_beta = 1 - pchisq(Sn,1)
+  p_alpha1 = 1 - pchisq(Tn,1)
   
-  result.df = data.frame(Coeff = c("beta","alpha"),
-                         Estimated_Coeff = c(beta_hat, alpha1_hat),
-                         std =c(sqrt(cov_beta_hat/n), 
-                                sqrt(var_alpha1_hat/n)),
-                         Test_statistics = c(Sn,Tn),
-                         p_value = c((1 - pchisq(Sn,1)), 
-                                     (1 - pchisq(Tn,1))))
+  std_alpha1 = sqrt(var_alpha1_hat/n)
+  std_beta =  sqrt(cov_beta_hat/n)
+  options("digits" = 4)
+  result.df = data.frame(Coeff = c("alpha1", "beta"),
+                         Estimated_Coeffcient = c(alpha1_hat, beta_hat),
+                         std =c(std_alpha1,std_beta),
+                         Test_statistics = c(Tn, Sn),
+                         p_value = c(p_alpha1, p_beta))
   
   return(list(Sn = Sn, Tn = Tn, 
               beta_hat = beta_hat, alpha0_hat = alpha0_hat,
               alpha1_hat = alpha1_hat, alpha2_hat = alpha2_hat, B = B, 
-              var_beta = cov_beta_hat, var_alpha1_hat = var_alpha1_hat, 
-              result.df = result.df))
+              var_beta = cov_beta_hat, var_alpha1_hat = var_alpha1_hat,
+              p_beta = p_beta, p_alpha1 = p_alpha1,
+              summary_result = result.df))
 }
