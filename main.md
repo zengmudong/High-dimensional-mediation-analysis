@@ -240,12 +240,11 @@ M_A = HBIC_PPLS(X, y, M, S = S, lam_list =lam_list, n_imp =8,
 
     ## [1] "choose lambda: 60.8163265306122"
 
-### 2.1.2 Estimat ![\\mathbf{\\alpha}\_1](https://latex.codecogs.com/png.latex?%5Cmathbf%7B%5Calpha%7D_1 "\\mathbf{\\alpha}_1") and ![\\mathbf{\\alpha}\_0](https://latex.codecogs.com/png.latex?%5Cmathbf%7B%5Calpha%7D_0 "\\mathbf{\\alpha}_0")
+### 2.1.2 Estimate ![\\mathbf{\\alpha}\_1](https://latex.codecogs.com/png.latex?%5Cmathbf%7B%5Calpha%7D_1 "\\mathbf{\\alpha}_1") and ![\\mathbf{\\alpha}\_0](https://latex.codecogs.com/png.latex?%5Cmathbf%7B%5Calpha%7D_0 "\\mathbf{\\alpha}_0")
 
-Estimated Coefficients, SE, t-values and p-values (Table 2)
+Estimated Coefficients, SE, t-values and p-values (Table 1)
 
 ``` r
-# Refit to produce Table 2:
 colnames(S) = paste0("Z",0:(ncol(S)-1))
 df = data.frame(cbind(M_A, X, S))
 round(summary(lm(y~ 0+., data = df))$coefficients,digits = 3)
@@ -280,7 +279,7 @@ Estimated Coefficients of
 ![\\Gamma\_1](https://latex.codecogs.com/png.latex?%5CGamma_1
 "\\Gamma_1") and
 ![\\Gamma\_2](https://latex.codecogs.com/png.latex?%5CGamma_2
-"\\Gamma_2") and their p-values (Table 3)
+"\\Gamma_2") and their p-values (Table 2)
 
 ``` r
 cpg = colnames(M_A)
@@ -322,7 +321,7 @@ round(Gamma$Gamma_pvalue,digits = 3)
 ## 2.2 Test of direct effect and indirect effect
 
 The estimated coefficients, standard errors, test statistics values and
-p-values (Table 4)
+p-values (Table 3)
 
 ``` r
 direct_indirect_eff <- mediationInference(X, y, M_A, S)
@@ -368,7 +367,7 @@ kable(fit$summary_result)
 
 ## 2.4 Annotation
 
-Annotation of the included mediators (Table 5)
+Annotation of the included mediators (Table 4)
 
 ``` r
 hm450 <- get450k()
@@ -395,7 +394,8 @@ annot[,'nearestGeneSymbol', drop=FALSE]
 Compare our results with those in Houtepen et al. (2016) and van
 Kesteren & Oberski (2019) from statistical point of view.
 
-Estimated \_j’s and their SE and p-values (Table 6)
+Estimated ![\\alpha\_j](https://latex.codecogs.com/png.latex?%5Calpha_j
+"\\alpha_j")’s and their SE and p-values (Table 5)
 
 ``` r
 ## m_{(1)}  Houtepen et al (2016)
@@ -408,10 +408,10 @@ Kesteren<-analysis_helper(X,y,M_A[,4:8], S, mod_name = '$\\mathbf{m}_{(2)}$')
 ## m_{(3)} Mediators merge from Houtepen et al (2016) or van Kesteren & Oberski (2019)
 combine8<-analysis_helper(X,y,M_A[,1:8], S,  mod_name = '$\\mathbf{m}_{(3)}$')
 
-Table6 <- merge(Houtepen$mod_summary, Kesteren$mod_summary,by = 'row.names', all = TRUE, check.names=F)
-Table6 <- merge(Table6, combine8$mod_summary,by.x = 'Row.names', by.y ='row.names' , all = TRUE, check.names=F)
-Table6[is.na(Table6)] <- ""
-knitr::kable(Table6)
+Table5 <- merge(Houtepen$mod_summary, Kesteren$mod_summary,by = 'row.names', all = TRUE, check.names=F)
+Table5 <- merge(Table5, combine8$mod_summary,by.x = 'Row.names', by.y ='row.names' , all = TRUE, check.names=F)
+Table5[is.na(Table5)] <- ""
+knitr::kable(Table5)
 ```
 
 | Row.names | ![\\mathbf{m}\_{(1)}](https://latex.codecogs.com/png.latex?%5Cmathbf%7Bm%7D_%7B%281%29%7D "\\mathbf{m}_{(1)}") Estimate | ![\\mathbf{m}\_{(1)}](https://latex.codecogs.com/png.latex?%5Cmathbf%7Bm%7D_%7B%281%29%7D "\\mathbf{m}_{(1)}") SE | ![\\mathbf{m}\_{(1)}](https://latex.codecogs.com/png.latex?%5Cmathbf%7Bm%7D_%7B%281%29%7D "\\mathbf{m}_{(1)}") p-value | ![\\mathbf{m}\_{(2)}](https://latex.codecogs.com/png.latex?%5Cmathbf%7Bm%7D_%7B%282%29%7D "\\mathbf{m}_{(2)}") Estimate | ![\\mathbf{m}\_{(2)}](https://latex.codecogs.com/png.latex?%5Cmathbf%7Bm%7D_%7B%282%29%7D "\\mathbf{m}_{(2)}") SE | ![\\mathbf{m}\_{(2)}](https://latex.codecogs.com/png.latex?%5Cmathbf%7Bm%7D_%7B%282%29%7D "\\mathbf{m}_{(2)}") p-value | ![\\mathbf{m}\_{(3)}](https://latex.codecogs.com/png.latex?%5Cmathbf%7Bm%7D_%7B%283%29%7D "\\mathbf{m}_{(3)}") Estimate | ![\\mathbf{m}\_{(3)}](https://latex.codecogs.com/png.latex?%5Cmathbf%7Bm%7D_%7B%283%29%7D "\\mathbf{m}_{(3)}") SE | ![\\mathbf{m}\_{(3)}](https://latex.codecogs.com/png.latex?%5Cmathbf%7Bm%7D_%7B%283%29%7D "\\mathbf{m}_{(3)}") p-value |
@@ -442,12 +442,12 @@ p-values for model
 ![\\mathbf{m}\_{(2)}](https://latex.codecogs.com/png.latex?%5Cmathbf%7Bm%7D_%7B%282%29%7D
 "\\mathbf{m}_{(2)}"),
 ![\\mathbf{m}\_{(3)}](https://latex.codecogs.com/png.latex?%5Cmathbf%7Bm%7D_%7B%283%29%7D
-"\\mathbf{m}_{(3)}") (Table 7)
+"\\mathbf{m}_{(3)}") (Table 6)
 
 ``` r
-Table7 <- rbind(Houtepen$summary_result, Kesteren$summary_result, combine8$summary_result)
-row.names(Table7) <- c('$\\mathbf{m}_{(1)}$','','$\\mathbf{m}_{(2)}$',' ','$\\mathbf{m}_{(3)}$','  ')
-knitr::kable(Table7)
+Table6 <- rbind(Houtepen$summary_result, Kesteren$summary_result, combine8$summary_result)
+row.names(Table6) <- c('$\\mathbf{m}_{(1)}$','','$\\mathbf{m}_{(2)}$',' ','$\\mathbf{m}_{(3)}$','  ')
+knitr::kable(Table6)
 ```
 
 |                                                                                                                | Coeffcient                                                                                                    | Estimated\_Coeffcient |    SE | Test\_statistics | p\_value |
@@ -469,7 +469,7 @@ m\_k)](https://latex.codecogs.com/png.latex?%5Chat%7B%5Crho%7D%28m_j%2C%20m_k%29
 ![p](https://latex.codecogs.com/png.latex?p "p")-values for ![H\_0:
 \\rho(m\_j,
 m\_k)=0](https://latex.codecogs.com/png.latex?H_0%3A%20%5Crho%28m_j%2C%20m_k%29%3D0
-"H_0: \\rho(m_j, m_k)=0") (Table S.1)
+"H_0: \\rho(m_j, m_k)=0") (Table S.2)
 
 ``` r
 source("utils.R")
@@ -498,7 +498,7 @@ m\_k|X,\\mathbf{z})](https://latex.codecogs.com/png.latex?%5Chat%7B%5Crho%7D%28m
 ![p](https://latex.codecogs.com/png.latex?p "p")-values for ![H\_0:
 \\rho(m\_j,
 m\_k|X,\\mathbf{z})=0](https://latex.codecogs.com/png.latex?H_0%3A%20%5Crho%28m_j%2C%20m_k%7CX%2C%5Cmathbf%7Bz%7D%29%3D0
-"H_0: \\rho(m_j, m_k|X,\\mathbf{z})=0") (Table S.2)
+"H_0: \\rho(m_j, m_k|X,\\mathbf{z})=0") (Table S.3)
 
 ``` r
 df = data.frame(cbind(M_A, X, S))
@@ -526,7 +526,7 @@ The ![R^2](https://latex.codecogs.com/png.latex?R%5E2 "R^2"),
 ![F](https://latex.codecogs.com/png.latex?F "F") statistics values and
 ![p](https://latex.codecogs.com/png.latex?p "p")-values of regression
 models between mediators to investigate multi-collinearity between
-mediators. (Table S.3)
+mediators. (Table S.4)
 
 ``` r
 fit1 <- summary(lm( m1~ m4+m5+m6+m7+m8, data = df))
@@ -539,14 +539,14 @@ fit4 <- summary(lm( m5~ m4+m6+m7+m8, data = df))
 
 fit5 <- summary(lm( m6~ m4+m5+m7+m8, data = df))
 
-S3 <- generateTableS3(list(fit1 = fit1, fit2 = fit2,
+S4 <- generateTableS4(list(fit1 = fit1, fit2 = fit2,
                            fit3 = fit3,fit4 = fit4,fit5 = fit5))
-tableS3<- data.frame(Dependent_variable = c('m1', 'm1', 'm4','m5','m6'),
+tableS4<- data.frame(Dependent_variable = c('m1', 'm1', 'm4','m5','m6'),
                       Independent_variable = c('m4, m5, m6, m7, m8', 'm9, m10, m11', 'm5, m6, m7, m8', 'm4, m6, m7, m8', 'm4, m5, m7, m8'),
-                      R2 = S3$R2,
-                      F_stat=S3$F_stat,
-                      p_value = S3$p_val)
-knitr::kable(tableS3, digits  = 4)
+                      R2 = S4$R2,
+                      F_stat=S4$F_stat,
+                      p_value = S4$p_val)
+knitr::kable(tableS4, digits  = 4)
 ```
 
 | Dependent\_variable | Independent\_variable |     R2 | F\_stat | p\_value |

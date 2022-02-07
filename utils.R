@@ -1,5 +1,5 @@
-# Install or load package from Zhou, Wang \& Zhao (2020)
-# Origial freebird in comes from https://github.com/rzhou14/freebird 
+# Install or load package for Zhou, Wang \& Zhao (2020)
+# Original freebird comes from https://github.com/rzhou14/freebird 
 # but this package does not provide the estimated standard error of coefficients. 
 # Instead, we modified its package output so that it can output standard error of the indirect effect beta
 # Instead, we modified its package to output its standard error of the indirect effect beta
@@ -22,7 +22,7 @@ if(!require(FDb.InfiniumMethylation.hg18)){
   library(FDb.InfiniumMethylation.hg18)
 }
 
-library(scalreg)
+
 library(glmnet)
 options("digits" = 4)
 LoadRawData<- function(InputPath, OutputPath = "./results/raw_data.Rdata"){
@@ -346,13 +346,16 @@ mediationInference<-function(X, Y, M, S){
 
 hdMediation <-function(X, y, M, lam_list, S = NULL, n_imp = 0){
   # This function implements the high-dimensional mediation analysis
-  #' @param X (Required) n by q exposure matrix. q can be 1, and q < n is required
+  #' @param X (Required) n by q exposure matrix. q can be 1, and 
+  #'                     q < n is required
   #' @param y (Required) n-dimensional outcome vector.
   #' @param M (Required) n by p mediator matrix. p can be larger than n.
   #' @param lam_list (Required) a list of tuning parameter for HBIC
-  #' @param S (Optional) n by s confounding variables matrix. s can be 1, and s < n is required. 
-  #' @param n_imp (Optional) an int, specifying the last number of the mediators in M that will not be penalized
-  
+  #' @param S (Optional) n by s confounding variables matrix. s can be 1, 
+  #'                     and s < n is required. 
+  #' @param n_imp (Optional) an int, specifying the number of unpenalized 
+  #'                        mediators in the last n_imp columns of M matrix 
+  #'                      
   #' @return
   #'    A list of class `hdMediation'
   #'    - Mediators_imp: Selected important mediators' name`
@@ -465,7 +468,7 @@ partial.helper <-function(df, xy, zz){
   return(output)
 }
 
-generateTableS3<-function(models){
+generateTableS4<-function(models){
   R2 = c()
   F_stat = c()
   p_val = c()
