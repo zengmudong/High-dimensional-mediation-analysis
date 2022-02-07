@@ -476,3 +476,4 @@ generateTableS3<-function(models){
   }
   return(list(R2 = R2, F_stat = F_stat, p_val = p_val))
 }
+

@@ -35,7 +35,7 @@ We  carry out a screening step to
 retain the top 1000 potential mediators by ranking the absolute value of the
 product of two correlations - the correlation between $\mathbf{x}$ and each element of $\mathbf{m}$, and between $y$ and each element of $\mathbf{m}$. This indeed is a marginal screening procedure based on Pearson correlation proposed by Fan & Lv (2008).
 
-```{r Preprocess, message=TRUE, warning=FALSE, paged.print=FALSE}
+```{r Preprocess, echo=TRUE, message=TRUE, warning=FALSE, paged.print=FALSE}
 RawDataPath = "results/raw_data.Rdata"
 topPotential = 1000
 cleanedData = MarginalScreening(RawDataPath, topPotential = topPotential)
@@ -137,7 +137,7 @@ HBIC_calc <- function(lamb, xx,yy,mm,S = NULL, n_imp =8){
 }
 
 
-HBIC_PPLS <- function(X, y, M, S = NULL, lam_list =NULL, n_imp =8,topPotential= 1000){
+HBIC_PPLS <- function(X, y, M, S = NULL, lam_list =NULL, n_imp =8, topPotential =1000){
   #' This function implements solving the partially penalized least squares with the SCAD penalty. The tuning parameter lambda for the penalty function is chosen based on the high-dimensional BIC (HBIC) method.
   #' @param X The n by q exposure matrix. q can be 1, and q < n is required
   #' @param y The n-dimensional outcome vector.
@@ -246,7 +246,7 @@ Table6 <- merge(Table6, combine8$mod_summary,by.x = 'Row.names', by.y ='row.name
 Table6[is.na(Table6)] <- ""
 knitr::kable(Table6)
 ```
-The estimated coefficients, standard errors, test statistics values and p-values fro model $\\mathbf{m}_{(1)}$, $\\mathbf{m}_{(2)}$, $\\mathbf{m}_{(3)}$ (Table 7)
+The estimated coefficients, standard errors, test statistics values and p-values for model $\mathbf{m}_{(1)}$, $\mathbf{m}_{(2)}$, $\mathbf{m}_{(3)}$ (Table 7)
 
 ```{r Table7, warning=FALSE}
 Table7 <- rbind(Houtepen$summary_result, Kesteren$summary_result, combine8$summary_result)
@@ -315,4 +315,3 @@ Zhou, R. X., Wang, L. W., & Zhao, S. H.(2020). Estimation and inference for the 
 
 ZOU, H., & LI, R. (2008). One-step sparse estimates in nonconcave penalized likelihood models. _Annals of Statistics_ **36**(4), 1509-1533.
 35
-

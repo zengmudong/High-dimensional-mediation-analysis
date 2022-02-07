@@ -196,7 +196,7 @@ HBIC_calc <- function(lamb, xx,yy,mm,S = NULL, n_imp =8){
 }
 
 
-HBIC_PPLS <- function(X, y, M, S = NULL, lam_list =NULL, n_imp =8,topPotential= 1000){
+HBIC_PPLS <- function(X, y, M, S = NULL, lam_list =NULL, n_imp =8, topPotential =1000){
   #' This function implements solving the partially penalized least squares with the SCAD penalty. The tuning parameter lambda for the penalty function is chosen based on the high-dimensional BIC (HBIC) method.
   #' @param X The n by q exposure matrix. q can be 1, and q < n is required
   #' @param y The n-dimensional outcome vector.
@@ -436,13 +436,13 @@ knitr::kable(Table6)
 | Z8        | 726.239                                                                                                                 | 4544.062                                                                                                          | 0.873                                                                                                                  | \-820.998                                                                                                               | 4859.867                                                                                                          | 0.866                                                                                                                  |                                                                                                               \-293.975 |                                                                                                          4277.640 |                                                                                                                  0.945 |
 
 The estimated coefficients, standard errors, test statistics values and
-p-values fro model
-![\\\\mathbf{m}\_{(1)}](https://latex.codecogs.com/png.latex?%5C%5Cmathbf%7Bm%7D_%7B%281%29%7D
-"\\\\mathbf{m}_{(1)}"),
-![\\\\mathbf{m}\_{(2)}](https://latex.codecogs.com/png.latex?%5C%5Cmathbf%7Bm%7D_%7B%282%29%7D
-"\\\\mathbf{m}_{(2)}"),
-![\\\\mathbf{m}\_{(3)}](https://latex.codecogs.com/png.latex?%5C%5Cmathbf%7Bm%7D_%7B%283%29%7D
-"\\\\mathbf{m}_{(3)}") (Table 7)
+p-values for model
+![\\mathbf{m}\_{(1)}](https://latex.codecogs.com/png.latex?%5Cmathbf%7Bm%7D_%7B%281%29%7D
+"\\mathbf{m}_{(1)}"),
+![\\mathbf{m}\_{(2)}](https://latex.codecogs.com/png.latex?%5Cmathbf%7Bm%7D_%7B%282%29%7D
+"\\mathbf{m}_{(2)}"),
+![\\mathbf{m}\_{(3)}](https://latex.codecogs.com/png.latex?%5Cmathbf%7Bm%7D_%7B%283%29%7D
+"\\mathbf{m}_{(3)}") (Table 7)
 
 ``` r
 Table7 <- rbind(Houtepen$summary_result, Kesteren$summary_result, combine8$summary_result)
