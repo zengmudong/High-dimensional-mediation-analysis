@@ -20,11 +20,11 @@ We have downloaded and manually cleaned it. We saved it as `X.tsv` in the `data`
 The rest of files are:
 
 1. `utils_mediation.R` stores all the functions that will be used in `case_study_main.Rmd`.
-2. `simulationPreprocessing.R` loads the processed data and prepare for simulation (section 4) part. Please run file before the following files, because all the simulations depend on this file's result.
+2. `simulationPreprocessing.R` loads the processed data and prepare for the simulations (section 4). Please run through this file before the following files, because all the simulations depend on this file's result.
 3. `Simulation_no_confounders.R` performs simulation studies without confounding variables (section 4.1).
-4. `Simulation_confounders.R` performs simulation studies with confounding variables (section 4.2)
-5. `Simulation_compare_sigma1.R` compares estimated \hat{\sigma}_1 among three methods: our proposed new method, oracle and Zhou et al (2020).
-6. `GlobalTestCompare.R' compares our method with global test
+4. `Simulation_confounders.R` performs simulation studies with confounding variables (section 4.2).
+5. `Simulation_compare_sigma1.R` compares estimated \hat{\sigma}_1 among three methods: our proposed new method, oracle and Zhou et al (2020) (section 4.2 Figure 3).
+6. `GlobalTestCompare.R' compares our method with global test (section S.3).
 
 Other files:
 
