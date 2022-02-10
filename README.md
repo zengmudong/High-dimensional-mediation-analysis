@@ -7,7 +7,7 @@ Supplementary material to the manuscript _High-dimensional mediation analysis fo
 
 Before running main.Rmd, one should:
 
-Step 1. Download data `E-GEOD-77445.processed.1.zip` (https://www.ebi.ac.uk/arrayexpress/files/E-GEOD-77445/E-GEOD-77445.processed.1.zip) as well as `E-GEOD-77445.processed.2.zip` 
+- Step 1. Download data `E-GEOD-77445.processed.1.zip` (https://www.ebi.ac.uk/arrayexpress/files/E-GEOD-77445/E-GEOD-77445.processed.1.zip) as well as `E-GEOD-77445.processed.2.zip` 
 (https://www.ebi.ac.uk/arrayexpress/files/E-GEOD-77445/E-GEOD-77445.processed.2.zip). Unzip these two zip files in the `data` folder.
 
 - Step 2. Open `High-dimensional-mediation-analysis-JASA.Rproj` and then open `main.Rmd` in the Rstudio.
