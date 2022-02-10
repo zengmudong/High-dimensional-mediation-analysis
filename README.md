@@ -5,15 +5,15 @@ Supplementary material to the manuscript _High-dimensional mediation analysis fo
 
 `main.Rmd` shows the empirical analysis to study how DNA methylation plays a role in the regulation of human stress reactivity. This Rmd aims to reproduce the results in Section 3 of the paper.
 
-Before running  main.Rmd, one should first open the .Rproj, download the data and specify the path of the data.
+Before running main.Rmd, one should:
 
-- Step 1. Make sure that first open `High-dimensional-mediation-analysis-JASA.Rproj` and then open `main.Rmd` in the Rstudio.
-          This will help you to correctly setup working directory.
+Step 1. Download data `E-GEOD-77445.processed.1.zip` (https://www.ebi.ac.uk/arrayexpress/files/E-GEOD-77445/E-GEOD-77445.processed.1.zip) as well as `E-GEOD-77445.processed.2.zip` 
+(https://www.ebi.ac.uk/arrayexpress/files/E-GEOD-77445/E-GEOD-77445.processed.2.zip). Unzip these two zip files in the `data` folder.
 
-- Step 2. Download `E-GEOD-77445.processed.1.zip` as well as `E-GEOD-77445.processed.2.zip` from the website:
-https://www.ebi.ac.uk/arrayexpress/experiments/E-GEOD-77445 and unzip them in the `data` folder.
+- Step 2. Open `High-dimensional-mediation-analysis-JASA.Rproj` and then open `main.Rmd` in the Rstudio.
+          This step will help you to correctly setup working directory. 
 
-- Step 3. Specify the `data` folder's absolute path to the `PATH` variable.
+- Step 3. Open `main.Rmd` from Rstudio and then specify the `data` folder's absolute path to the `PATH` variable (in the first code cell of `main.Rmd`).
 
 Note that there is no need to download `E-GEOD-77445.sdrf.txt`, which has different row length and cannot be read into R directly. 
 We have downloaded and manually cleaned it. We saved it as `X.tsv` in the `data` folder because this file contains information about exposure variable $X$.
