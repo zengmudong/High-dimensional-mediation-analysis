@@ -5,7 +5,7 @@ Supplementary material to the manuscript _High-dimensional mediation analysis fo
 
 `case_study_main.Rmd` shows the empirical analysis to study how DNA methylation plays a role in the regulation of human stress reactivity. This Rmd aims to reproduce the results in Section 3 of the paper.
 
-Before running case_study_main.Rmd, one should:
+Before running `case_study_main.Rmd`, one should:
 
 - Step 1. Download data `E-GEOD-77445.processed.1.zip` (https://www.ebi.ac.uk/arrayexpress/files/E-GEOD-77445/E-GEOD-77445.processed.1.zip) as well as `E-GEOD-77445.processed.2.zip` 
 (https://www.ebi.ac.uk/arrayexpress/files/E-GEOD-77445/E-GEOD-77445.processed.2.zip). Unzip these two zip files in the `data` folder.
@@ -24,7 +24,7 @@ The rest of files are:
 3. `Simulation_no_confounders.R` performs simulation studies without confounding variables (section 4.1).
 4. `Simulation_confounders.R` performs simulation studies with confounding variables (section 4.2).
 5. `Simulation_compare_sigma1.R` compares estimated \hat{\sigma}_1 among three methods: our proposed new method, oracle and Zhou et al (2020) (section 4.2 Figure 3).
-6. `GlobalTestCompare.R' compares our method with global test (section S.3).
+6. `GlobalTestCompare.R` compares our method with global test (section S.3).
 
 Other files:
 
