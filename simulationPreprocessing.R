@@ -1,7 +1,40 @@
+# Install or load package for Zhou, Wang \& Zhao (2020)
+# Original freebird comes from https://github.com/rzhou14/freebird 
+# but this package does not provide the estimated standard error of coefficients. 
+# Instead, we modified its package output so that it can output standard error of the indirect effect beta
+# Instead, we modified its package to output its standard error of the indirect effect beta
+if(!require(freebird)){
+  if(!require(devtools)){
+    install.packages("devtools", dependencies = TRUE)
+    # For windows user, if cannot run thorough the above command, use the following:
+    # install.packages("devtools", type = "win.binary", dependencies = TRUE)
+  }
+  devtools::install_github("zengmudong/freebird")
+}
+# If cannot install freebird package, this may because Rtools is not installed or setup correctly.
+# To address Rtools issue, please follow this link: https://cran.r-project.org/bin/windows/Rtools/rtools40.html  
+# After installing and setting path of Rtools successfully, rerun codes in line 6 -13.
+library(freebird)
+if(!require(stringr)){install.packages("stringr")}
+if(!require(MASS)){install.packages("MASS")}
+if(!require(Matrix)){install.packages("Matrix")}
+if(!require(tidyr)){install.packages("tidyr")}
+if(!require(ggplot2)){install.packages("ggplot2")} 
+if(!require(ggpubr)){install.packages("ggpubr")} 
+if(!require(dplyr)){install.packages("dplyr")}
+if(!require(latex2exp)){install.packages("latex2exp")}
+library(stringr)
+library(MASS)
+library(scalreg)
+library(Matrix)
 ###########################################################################################
 # Preprocessing for Section 4 simulation
+# Before running this R file, 
+source('utils_mediation.R')
+if(!file.exists("results/preproc_JASA.Rdata")){
+  print("Error: no exist preproc_JASA.Rdata in results folder. Please first run main.Rmd before running this file.")
+}
 load("results/preproc_JASA.Rdata")
-source('utils.R')
 ## Standardize all variables
 X = scale(X)
 Y = scale(y)
@@ -17,7 +50,7 @@ n = length(X)
 q = ncol(X)
 p = ncol(M)
 s = ncol(S)
-# Tuning parameter lambda
+# Tuning parameter lambda via HBIC
 lamb_min = 0.1
 lamb_max = 0.228
 ngrid = 50
@@ -41,7 +74,7 @@ sigma1_hat = results[[id]]$sigma1_hat
 A = which(alpha0_hat!=0)
 alpha0_hat[A]
 M_A = M[,A]
-## Refit
+## Refit model with selected mediators
 W = data.matrix(cbind(X,S))
 Gamma_hat = solve(t(W)%*%W) %*% t(W)%*% M
 W_hat = W %*% Gamma_hat
